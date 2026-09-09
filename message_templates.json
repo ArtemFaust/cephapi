@@ -1,0 +1,90 @@
+{
+    "endpoints" : [
+        {"ru-ud-amoff-1": {
+                "endpoint": "https://ru-ud-amoff-1.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        }, 
+        {"s3.test01.infra": {
+                "endpoint": "https://s3.test01.infra.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        }, 
+        {"ru-ud-analytics": {
+                "endpoint": "https://ru-ud-analytics-1.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        }, 
+        {"ru-ud-1": {
+                "endpoint": "https://ru-ud-1.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        }, 
+        {"ru-ud-dmz-1": {
+                "endpoint": "https://ru-ud-dmz-1.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        }, 
+        {"ru-dh-dmz-1": {
+                "endpoint": "https://ru-dh-dmz-1.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        },
+        {"ceph-test.test10": {
+                "endpoint": "http://10.9.61.121:80",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        },
+        {"ru-dh-1": {
+                "endpoint": "https://tmp-dh-1.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        },
+        {"ru-dh-ish-3": {
+                "endpoint": "https://ru-dh-ish-3.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        },
+        {"ru-ud-ish-3": {
+                "endpoint": "https://ru-ud-ish-3.s3.crpt.tech",
+                "max_buckets": "50",
+                "realm": "default",
+                "zone": "default",
+                "zone_group": "default"
+            }
+        }
+    ],
+    "user_quota": "",
+    "username": "",
+    "access_key": "",
+    "secret_key": "",
+
+    "template": "Здравствуйте, доступ по заявке предоставлен:\nmax buckets: \nuser quota: \nusername: \naccess key: \nsecret key: \nrealm: \nzone group: \nendpoints: \npath style access ${endpoint}/${bucket}"
+}

@@ -1,0 +1,29 @@
+stages:
+  - build
+  - push
+
+variables:
+  HARBOR_REGISTRY:  
+  IMAGE_TAG: $CI_COMMIT_SHA
+  IMAGE_NAME: infra/base-cephapi
+  DOCKER_IMAGE: $HARBOR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+  LATEST_IMAGE: $HARBOR_REGISTRY/$IMAGE_NAME:latest
+
+build_image:
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $DOCKER_IMAGE ./base-cephapi/
+    - docker tag $DOCKER_IMAGE $LATEST_IMAGE
+
+push_image:
+  stage: push
+  before_script:
+    - mkdir -p ~/.docker
+    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+  script:
+    - echo "Pushing Docker image..."
+    - docker push $DOCKER_IMAGE
+    - docker push $LATEST_IMAGE
+
+#настроить cleanup

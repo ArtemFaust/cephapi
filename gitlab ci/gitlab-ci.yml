@@ -1,0 +1,590 @@
+# Параметры запуска нового Pipeline передаваемых как input аргументы
+spec:
+  inputs:
+# Общие импуты для всех операций
+    operation_type:
+        type: string
+        options: ["-rgw", "-rados", "-rbd", "non select"]
+        description: "Выбор типа операции RGW RADOS RBD"
+        default: "non select"
+    endpoint:
+        type: string
+        options: ["ru-dh-ish-3", "ru-ud-ish-3", "s3.prod02.infra", "ru-ud-amoff-1", "s3.test01.infra", "ru-ud-analytics", "ru-ud-1", "ru-ud-dmz-1", "ru-dh-dmz-1", "ceph-test.test10", "ru-dh-1", "non select"]
+        description: "Ceph cluster endpoint"
+        default: "non select"
+    operation:
+        type: string
+        description: "Выбор операции"
+        rules:
+          - if: $[[ inputs.operation_type ]] == '-rgw'
+            options: ["Получить список пользователей", "Получить список бакетов пользователя", "Получить список ключей пользователя", "Создание нового S3 пользователя", "Создание нового S3 ключа для пользователя", "Редактирование CAPS S3 пользователя", "Удаление CAPS S3 пользователя", "Удаление SUBUSER S3 пользователя", "Удаление S3 пользователя", "Смена placement и storageclass пользователя"]
+            default: "Получить список пользователей"
+          - if: $[[ inputs.operation_type ]] == '-rados'
+            options: ["Создание новой cephfs", "Смена crush_rule для существующего pool", "Смена атрибутов существующего pool", "Создание нового пользователя", "Изменение или установка caps пользователя", "Выберете операцию"]
+            default: "Выберете операцию"
+    format:
+        type: string
+        description: "Формат отображения. Применим только к операциям отображения данных"
+        options: ["table", "json"]
+        default: "json"
+#RGW
+# Инпуты для операции создания нового пользователя RGW
+    # Параметры пользователя
+    user_display_name:
+        type: string
+        description: "Отображаемое имя пользователя - <контур>.<тенант>_RFC-XXXXXXX"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 пользователя'
+          default: "<контур>.<тенант>_RFC-XXXXXXX"
+    user_email_address:
+        type: string
+        description: "Email пользователя"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 пользователя'
+          default: ""
+    user_quota_gib:
+        type: string
+        description: "Квота пользователя указывается в GiB - по умолчанию квота не устанавливается"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 пользователя'
+          default: "-1"
+    user_quota_obj:
+        type: string
+        description: "Квота объектов пользователя указывается в кол-ве - по умолчанию квота не устанавливается"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 пользователя'
+          default: "-1"
+    # Разрешения пользователя так же доступн при опрераци редактирования CAPS пользователя
+    user_cups:
+        type: string
+        description: "Permission пользователя"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 пользователя' || $[[ inputs.operation ]] == 'Редактирование CAPS S3 пользователя'
+          default: ""
+# Импуты для операции создания нового ключа пользователя RGW
+    # Данный input так же доступен для многих операций связанных с конечным пользователем
+    uuid:
+        type: string
+        description: "UID пользователя S3"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 пользователя' || $[[ inputs.operation ]] == 'Создание нового S3 ключа для пользователя' || $[[ inputs.operation ]] == 'Получить список пользователей' || $[[ inputs.operation ]] == 'Получить список ключей пользователя' || $[[ inputs.operation ]] == 'Получить список бакетов пользователя' || $[[ inputs.operation ]] == 'Редактирование CAPS S3 пользователя' || $[[ inputs.operation ]] == 'Удаление CAPS S3 пользователя' || $[[ inputs.operation ]] == 'Удаление SUBUSER S3 пользователя' || $[[ inputs.operation ]] == 'Удаление S3 пользователя' || $[[ inputs.operation ]] == 'Смена placement и storageclass пользователя'
+          default: ""
+    suuid:
+        type: string
+        description: UUID subuser пользователя
+        rules:
+          - if: $[[ inputs.operation ]] == 'Удаление SUBUSER S3 пользователя'
+            default: ""
+    key_access:
+        type: string
+        description: "Права доступа для нового ключа"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание нового S3 ключа для пользователя'
+          options: ["RW", "RO"]
+          default: "RW"
+# Импуты для смена storage_calss пользователя RGW
+    placement:
+        type: string
+        description: Название placement
+        rules:
+          - if: $[[ inputs.operation ]] == 'Смена placement и storageclass пользователя'
+            default: ""
+    storageclass:
+        type: string
+        description: Название storage class выбранного placement
+        rules:
+          - if: $[[ inputs.operation ]] == 'Смена placement и storageclass пользователя'
+            default: "STANDARD"
+#RADOS
+# Импуты для операции cephfs
+    cephfs_pool_type:
+        type: string
+        description: "Тип пула"
+        rules:
+          - if: $[[ inputs.operation ]] == 'Смена crush_rule для существующего pool' || $[[ inputs.operation ]] == 'Смена атрибутов существующего pool'
+            options: ["data", "meta"]
+            default: "data"
+    cephfs_name:
+        type: string
+        description: "Название CEPHFS"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs' || $[[ inputs.operation ]] == 'Смена crush_rule для существующего pool' || $[[ inputs.operation ]] == 'Смена атрибутов существующего pool'
+          default: "rfs-XXXX"
+    cephfs_placement:
+        type: string
+        description: "Список серверов размешения mds сервиса cephfs"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs'
+          default: "*"
+    cephfs_meta_crush_rule:
+        type: string
+        description: "Crush rule размещения meta pool. Если не указанно будет взято из конфигурации"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs' || $[[ inputs.operation ]] == 'Смена crush_rule для существующего pool' &&  $[[ inputs.cephfs_pool_type ]] == 'meta'
+          default: ""
+    cephfs_data_crush_rule:
+        type: string
+        description: "Crush rule размещения data pool. Если не указанно будет взято из конфигурации"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs' || $[[ inputs.operation ]] == 'Смена crush_rule для существующего pool' &&  $[[ inputs.cephfs_pool_type ]] == 'data'
+          default: ""
+    cephfs_data_pool_quota:
+        type: string
+        description: "Квота в GiB для data pool"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs' || $[[ inputs.operation ]] == 'Смена атрибутов существующего pool' && $[[ inputs.cephfs_pool_type ]] == 'data'
+          default: "0"
+    cephfs_meta_pool_pg_num:
+        type: string
+        description: "Количество PG для meta pool"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs' || $[[ inputs.operation ]] == 'Смена атрибутов существующего pool' && $[[ inputs.cephfs_pool_type ]] == 'meta'
+          default: "16"
+    cephfs_data_pool_pg_num:
+        type: string
+        description: "Количество PG для data pool"
+        rules:
+        - if: $[[ inputs.operation ]] == 'Создание новой cephfs' || $[[ inputs.operation ]] == 'Смена атрибутов существующего pool' && $[[ inputs.cephfs_pool_type ]] == 'data'
+          default: "32"
+    cephfs_create_new_user:
+        type: string
+        description: "Создать нового пользовыателя"
+        rules:
+          - if: $[[ inputs.operation ]] == 'Создание новой cephfs'
+            options: ["true", "false"]
+            default: "true"
+    cephfs_username:
+        type: string
+        description: "Имя пользователя ceph. Оставить пустым для генерации"
+        rules:
+        - if: $[[ inputs.cephfs_create_new_user ]] == 'true'
+          default: ""
+---
+
+# Стадия выполнения одна - непосредственное выполенение.
+stages:
+  - exec
+
+exec-job:
+  stage: exec
+  variables:
+    SHELL: /bin/bash
+  # параметры запуска - ручно только из web
+  when: manual
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+  tags:
+    # Указываем ранер исполнения по его тегу
+    #- runner0                               # Для локальной разработки
+    - ceph-ansible-runner01                # Для прода
+  # Для прода
+  image:
+    name: harbor.infra.crpt.tech/team_sysops/base-cephapi:latest
+    docker:
+      user: root
+  # Для локальных тестов и разработки
+  #image:
+  #  name: cephapi:latest
+  #  docker:
+  #    user: root
+  script:
+    - |
+        /bin/bash << 'EOF'
+        echo -e "\033[33m==============Check user permission==============\033[0m"
+        u=$(echo $permited_users | base64 -di)
+        users=(${u// / })
+        if [[ ! ${users[@]} =~ $GITLAB_USER_LOGIN ]];
+        then
+          echo -e "\033[31;1m!!!!! У ВАС НЕТ РАЗРЕШЕНИЯ НА ЗАПУСК ДАННОГО PIPELINE !!!!!\033[0m"
+          exit 1
+        fi
+        echo -e "\033[33m==============End check==============\033[0m"
+        EOF
+    - cat $endpoints | base64 -di > $(pwd)/endpoints.yaml
+    # Для alpine
+    #- apk add uuidgen jq yq bash ceph-base ceph-common librados-dev
+    # Для Debian/Ubuntu
+    - apt install -y ./additional_packages/ubuntu/yq_3.1.0-3_all.deb
+    - chmod -R 777 $(pwd)
+    - |
+        /bin/bash << 'EOF'
+        echo -e "\033[33m==============Select binary==============\033[0m"
+        if [[ $(arch) == "x86_64" ]];
+        then
+          EXEC="$(pwd)/dist/linux/amd64/cephapi"
+          echo $EXEC -nocache -refresh
+        elif [[ $(arch) == "aarch64" ]];
+        then
+          EXEC="$(pwd)/dist/linux/aarch64/cephapi"
+          echo $EXEC -nocache -refresh
+        fi
+        echo -e "\033[33m==============End select==============\033[0m"
+        echo -e "\033[33m==============Debug variables==============\033[0m"
+        if [[ $[[ inputs.operation_type ]] == "-rgw" ]];
+        then
+          echo "operation_type: $[[ inputs.operation_type ]]"
+          echo "endpoint: $[[ inputs.endpoint ]]"
+          echo "operation: $[[ inputs.operation ]]"
+          echo "format: $[[ inputs.format ]]"
+          echo "user_display_name: $[[ inputs.user_display_name ]]"
+          echo "user_email_address: $[[ inputs.user_email_address ]]"
+          echo "user_quota_gib: $[[ inputs.user_quota_gib ]]"
+          echo "user_quota_obj: $[[ inputs.user_quota_obj ]]"
+          echo "user_cups: $[[ inputs.user_cups ]]"
+          echo "uuid: $[[ inputs.uuid ]]"
+          echo "suuid: $[[ inputs.suuid ]]"
+          echo "key_access: $[[ inputs.key_access ]]"
+          echo "placement: $[[ inputs.placement ]]"
+          echo "storage class: $[[ inputs.storageclass ]]"
+        elif [[ $[[ inputs.operation_type ]] == "-rados" ]];
+        then
+          echo "operation_type: $[[ inputs.operation_type ]]"
+          echo "endpoint: $[[ inputs.endpoint ]]"
+          echo "operation: $[[ inputs.operation ]]"
+          echo "format: $[[ inputs.format ]]"
+          echo "cephfs_name: $[[ inputs.cephfs_name ]]"
+          echo "cephfs_placement: $[[ inputs.cephfs_placement ]]"
+          echo "cephfs_meta_crush_rule: $[[ inputs.cephfs_meta_crush_rule ]]"
+          echo "cephfs_data_crush_rule: $[[ inputs.cephfs_data_crush_rule ]]"
+          echo "cephfs_data_pool_quota: $[[ inputs.cephfs_data_pool_quota ]]"
+          echo "cephfs_meta_pool_pg_num: $[[ inputs.cephfs_meta_pool_pg_num ]]"
+          echo "cephfs_data_pool_pg_num: $[[ inputs.cephfs_data_pool_pg_num ]]"
+          echo "cephfs_create_new_user: $[[ inputs.cephfs_create_new_user ]]"
+          echo "cephfs_username: $[[ inputs.cephfs_username ]]"
+        fi
+        echo -e "\033[33m==============End debug variables==============\033[0m"
+        # Выводим в лог информацию ою инициторе запуска pipeline
+        echo -e "\033[33m--- PIPELINE ЗАПУЩЕН ПОЛЬЗОВАТЕЛЕМ \033[31;1m$GITLAB_USER_NAME ($GITLAB_USER_LOGIN)\033[0m\033[33m ---\033[0m"
+        # Метод обработки операций связанных с RGW
+        function rgw_operations {
+          # Преобразование задачи в ключ аргумента запуска
+          case "$[[ inputs.operation ]]" in
+              "Получить список пользователей")
+                  operation="-lu"
+                  ;;
+              "Получить список ключей пользователя")
+                  operation="-guk"
+                  ;;
+              "Создание нового S3 пользователя")
+                  operation="-cu"
+                  ;;
+              "Создание нового S3 ключа для пользователя")
+                  operation="-ck"
+                  ;;
+              "Получить список бакетов пользователя")
+                  operation="-lb"
+                  ;;
+              "Редактирование CAPS S3 пользователя")
+                  operation="-cuc"
+                  ;;
+              "Удаление CAPS S3 пользователя")
+                  operation="-ruc"
+                  ;;
+              "Удаление SUBUSER S3 пользователя")
+                  operation="-rsu"
+                  ;;
+              "Удаление S3 пользователя")
+                  operation="-ru"
+                  ;;
+              "Смена placement и storageclass пользователя")
+                  operation="-cup"
+                  ;;
+          esac
+
+          if [[ "$operation" == "-cu" ]];
+          # Создание нового пользователя S3
+          then
+              # Выполняем операцию создания нового пользователя (stdout перенаправляем в /dev/null)
+              if [[ "$[[ inputs.uuid ]]" == '' ]];
+              then
+                USERID=$(uuidgen)
+              else
+                USERID="$[[ inputs.uuid ]]"
+              fi
+              echo -e "\033[33m--- НАЧАЛО ОПЕРАЦИИ СОЗДАНИЯ НОВОГО S3 ПОЛЬЗОВАТЕЛЯ - USER_UUID=\033[31;1m$USERID\033[33m ---\033[0m"
+              
+              # Преобразование GiB в kb
+              user_quota_kb=$(( $[[ inputs.user_quota_gib ]] * 1048576 ))
+              
+              $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format json -e $[[ inputs.endpoint ]] \
+              -rup "$USERID|$[[ inputs.user_display_name ]]|$[[ inputs.user_email_address ]]|$user_quota_kb|$[[ inputs.user_quota_obj ]]|" \
+              -caps "$[[ inputs.user_cups ]]" 1> /dev/null
+              # Если пользователь создан успешно
+              echo -e "\033[33m--- Пользователь создан успешно ---\033[0m"
+              # Формирование тела письма
+              # Получаем ключи созданного пользователя - у нового пользователя будет только 1 ключ S3 поэтому берем 0 элемент массива
+              NEW_USER_KEYS=$($EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format json -e $[[ inputs.endpoint ]] -guk -uid $USERID | jq '.keys[0]')
+              echo $NEW_USER_KEYS | jq '.' # Данные ключа отправляемые в письме пользователю
+              /bin/bash ./message_generate.sh $[[ inputs.endpoint ]] "$[[ inputs.user_quota_gib ]] GiB" $USERID $(echo $NEW_USER_KEYS | jq '.access_key' | sed 's/"//g') $(echo $NEW_USER_KEYS | jq '.secret_key' | sed 's/"//g')
+          fi
+
+          if [[ "$operation" == "-ck" ]];
+          # Создание нового ключа для пользователя S3
+          then
+            echo -e "\033[33m--- НАЧАЛО ОПЕРАЦИИ СОЗДАНИЯ НОВОГО S3 КЛЮЧА ДЛЯ ПОЛЬЗОВАТЕЛЯ - USER_UUID=\033[31;1m$[[ inputs.uuid ]]\033[33m ---\033[0m"
+            echo -e "\033[33mРАЗРЕШЕНИЯ ДЛЯ СОЗДАВАЕМОГО КЛЮЧА: \033[31;1m$[[ inputs.key_access ]]\033[0m"
+            
+            if [[ "$[[ inputs.key_access ]]" == "RW" ]];
+            then
+              # Выполняем операцию создания нового s3 ключа для пользователя s3
+              USER_NEW_S3_KEY=$($EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format json -e $[[ inputs.endpoint ]] -kt s3 -uid $[[ inputs.uuid ]])
+              # Если ключ пользователя создан успешно формируем тело письма
+              echo $USER_NEW_S3_KEY | jq '.' # Данные нового ключа отправляемые в письме пользователю
+            fi
+
+            if [[ "$[[ inputs.key_access ]]" == "RO" ]];
+            then
+              # Выполняем операцию создания нового s3 ключа для пользователя s3 через subuser
+              # Получение существующих ключей пользователя для определения последнего индектификатора subuser
+              SUBUSER_IDS=$($EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format json -e $[[ inputs.endpoint ]] -guk -uid $[[ inputs.uuid ]] | jq '.swift_keys[] | .user' | sed "s/\"//g" | cut -d ":" -f 2)
+              # Формируем новый идентификатор max_num_id + 1
+              newid=0
+              for n in ${SUBUSER_IDS[@]};do 
+                if [[ $n -gt $newid ]]; then
+                    newid=$n
+                fi
+              done
+              newid=$((newid + 1))
+              
+              # Создаем нового subuser с правами ro для данного пользователя
+              echo "СОЗДАНИЕ SUBUSER ID=$newid ДЛЯ ПОЛЬЗОВАТЕЛЯ $[[ inputs.uuid ]] С ПРАВАМИ READ ONLY - ЧЕРЗ SUBUSER БУДЕТ СОЗДАН КЛЮЧ RO"
+              $EXEC -nocache -refresh $[[ inputs.operation_type ]] -cus -format json -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]] -rup "$newid|read" 1> /dev/null
+              
+              # Создаем новый S3 ключ на только что созданного пользователя
+              USER_NEW_S3_KEY=$($EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format json -e $[[ inputs.endpoint ]] -kt s3 -uid $[[ inputs.uuid ]] -suid "$[[ inputs.uuid ]]:$newid")
+              echo $USER_NEW_S3_KEY | jq '.' # Данные нового ключа отправляемые в письме пользователю
+            fi
+          fi
+
+          if [[ "$operation" == "-guk" ]];
+          # Получение списка ключей пользователя S3
+          then
+            if [[ "$[[ inputs.uuid ]]" == "" ]];
+            then
+              exit 1
+            fi
+            echo -e "\033[33m--- ПОЛУЧЕНИЕ СПИСКА КЛЮЧЕЙ ПОЛЬЗОВАТЕЛЯ ---\033[0m"
+            $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]]
+          fi
+
+          if [[ "$operation" == "-lb" ]];
+          # Получить список бакетов пользователя
+          then
+            if [[ "$[[ inputs.uuid ]]" == "" ]];
+            then
+              $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]]
+            else
+              $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]]
+            fi
+          fi
+
+          if [[ "$operation" == "-cuc" ]]; 
+          # Установка или изменение пользовательских caps
+          then
+            if [[ "$[[ inputs.uuid ]]" == "" ]];
+            then
+              exit 1
+            fi
+            echo -e "\033[33m--- УСТАНОВКА CAPS ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m CAPS: \033[31;1m$user_caps\033[33m ---\033[0m"
+            $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]] -caps $[[ inputs.user_cups ]]
+            echo -e "\033[33m--- ВЫПОЛНЕНА УСТАНОВКА CAPS ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m CAPS: \033[31;1m$[[ inputs.user_cups ]]\033[33m ---\033[0m"
+          fi       
+
+          if [[ "$operation" == "-ruc" ]]; 
+          # Удаление пользовательских caps
+          then
+            if [[ "$[[ inputs.uuid ]]" == "" ]];
+            then
+              exit 1
+            fi
+            echo -e "\033[33m--- УДАЛЕНИЕ CAPS ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m ---\033[0m"
+            $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]]
+            echo -e "\033[33m--- ВЫПОЛНЕНО УДАЛЕНИЕ CAPS ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m ---\033[0m"
+          fi  
+
+          if [[ "$operation" == "-rsu" ]]; 
+          # Удаление subuser
+          then
+            if [[ "$[[ inputs.uuid ]]" == "" || "$[[ inputs.suuid ]]" == "" ]];
+            then
+              exit 1
+            fi
+            echo -e "\033[33m--- УДАЛЕНИЕ SUBUSER ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m SUBUSER: \033[31;1m$[[ inputs.suuid ]]\033[33m ---\033[0m"
+            $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]] -suid $[[ inputs.suuid ]]
+            echo -e "\033[33m--- ВЫПОЛНЕНО УДАЛЕНИЕ SUBUSER ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m  SUBUSER: \033[31;1m$[[ inputs.suuid ]]\033[33m ---\033[0m"
+          fi
+
+          if [[ "$operation" == "-ru" ]]; 
+          # Удаление S3 пользователя
+          then
+            if [[ "$[[ inputs.uuid ]]" == "" ]];
+            then
+              exit 1
+            fi
+            echo -e "\033[33m--- УДАЛЕНИЕ S3 ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m ---\033[0m"
+            $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]]
+            echo -e "\033[33m--- ВЫПОЛНЕНО УДАЛЕНИЕ S3 ПОЛЬЗОВАТЕЛЯ: \033[31;1m$[[ inputs.uuid ]]\033[33m ---\033[0m"
+          fi
+
+          if [[ "$operation" == "-lu" ]];
+          # Получить список пользователей S3
+          then
+            # Действие по умолчанию просто вывести всех пользователей в указанном формате
+            if [[ "$[[ inputs.uuid ]]" == "" ]];
+            then
+              $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]]
+            else
+              $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]]
+            fi
+          fi
+
+          if [[ "$operation" == "-cup" ]];
+          # Смена placement и storage class пользователя
+          then
+            $EXEC -nocache -refresh $[[ inputs.operation_type ]] $operation -format $[[ inputs.format ]] -e $[[ inputs.endpoint ]] -uid $[[ inputs.uuid ]] -dp $[[ inputs.placement ]] -ds $[[ inputs.storageclass ]]
+          fi
+        }
+
+        # Метод обработки операций свяфзанных с RADOS
+        function rados_operations {
+          # Преобразование задачи в ключ аргумента запуска
+          case "$[[ inputs.operation ]]" in
+              "Создание новой cephfs")
+                  operation="-cf"
+                  ;;
+              "Смена crush_rule для существующего pool")
+                  operation="-cpc"
+                  ;;
+              "Смена атрибутов существующего pool")
+                  operation="-cpa"
+                  ;;
+          esac
+
+          # Создание новой cephfs
+          if [[ "$operation" == "-cf" ]];
+          then
+            echo "Выполняем проверку что такой cephfs не существует"
+            for fs in $($EXEC -rados -e $[[ inputs.endpoint ]] -gf -format json -refresh -nocache | jq '.[] | select(.application_metadata.cephfs.data != null) | .application_metadata.cephfs.data' | sed 's/"//g');
+            do
+              if [[ $fs == *"$[[ inputs.cephfs_name ]]"* ]];
+              then
+                echo -e "\033[33m--- ВНИМАНИЕ ОПЕРАЦИЯ ОТМЕНЕНА \033[31;1mТАКАЯ CEPHFS УЖЕ СУЩЕСТВУЕТ\033[0m\033[33m ---\033[0m"
+                exit 1
+              fi
+            done
+            
+            echo "Создание новой cephfs"
+            # Преобразование GiB в kb
+            user_quota_b=$(( $[[ inputs.cephfs_data_pool_quota ]] * 1073741824 ))
+            
+            $EXEC -rados -e $[[ inputs.endpoint ]] $operation -fsname $[[ inputs.cephfs_name ]] \
+            -placement "$[[ inputs.cephfs_placement ]]" \
+            -dmc "$[[ inputs.cephfs_meta_crush_rule ]]" \
+            -ddc "$[[ inputs.cephfs_data_crush_rule ]]" \
+            -mpa "off|$[[ inputs.cephfs_meta_pool_pg_num ]]|none|0|0" \
+            -dpa "off|$[[ inputs.cephfs_data_pool_pg_num ]]|none|$user_quota_b|0"
+            
+            if [[ "$[[ inputs.cephfs_create_new_user ]]" == "true" ]];
+            then
+              echo "Создание нового пользователя для cephfs"
+              username="$[[ inputs.cephfs_username ]]"
+              if [[ $username == "" ]];
+              then
+                username="$[[ inputs.cephfs_name ]]"
+              fi
+              $EXEC -rados -e $[[ inputs.endpoint ]] -cu \
+              -user $username \
+              -caps "mon==allow r;mds==allow rw;mgr==allow rw;osd==allow rwx pool=cephfs.$[[ inputs.cephfs_name ]].meta, allow rwx pool=cephfs.$[[ inputs.cephfs_name ]].data"
+              
+              # Получаем информацию о пользователе для последующего формирования тела письма
+              echo -e "\n\n\nТело письма:\n"
+              echo "Здравствуйте, доступ по заявке предоставлен:"
+              echo "mds.namespace=$username"
+              $EXEC -rados -e $[[ inputs.endpoint ]] -guk -user client.$username > userinfo.txt
+              FSID=$($EXEC -decode | yq '.RADOS.EndPoints | map(select(.Name == "'"$[[ inputs.endpoint ]]"'")) | .[0].Fsid' | sed 's/"//g')
+              MON=$($EXEC -decode | yq '.RADOS.EndPoints | map(select(.Name == "'"$[[ inputs.endpoint ]]"'")) | .[0].MonHosts' | sed 's/"//g')
+              echo -e "\n[global]\n    fsid = $FSID\n    mon_host = $MON
+              "
+            else
+              echo "Для создаваемой cephfs не будет зоздан новый пользователь"
+            fi
+          fi
+
+          # Сменение crush_rule для существующего pool
+          if [[ "$operation" == "-cpc" ]];
+          then
+            echo "Смена crush_rule для существующего pool"
+            echo "Тип pool: $[[ inputs.cephfs_pool_type ]]"
+            # Проверка что cephfs существует
+            for fs in $($EXEC -rados -e $[[ inputs.endpoint ]] -gf -format json -refresh -nocache | jq '.[] | select(.application_metadata.cephfs.data != null) | .application_metadata.cephfs.data' | sed 's/"//g');
+            do
+              if [[ $fs == "$[[ inputs.cephfs_name ]]" ]];
+              then
+                if [[ "$[[ inputs.cephfs_pool_type ]]" == "meta" ]];
+                then
+                  if [[ "$[[ inputs.cephfs_meta_crush_rule ]]" == "" ]];
+                  then
+                    echo "Не указан crush rule"
+                    exit 1
+                  fi
+                  $EXEC -rados -e $[[ inputs.endpoint ]] $operation -pool "cephfs.$[[ inputs.cephfs_name ]].meta" -crush_rule "$[[ inputs.cephfs_meta_crush_rule ]]"
+                elif [[ "$[[ inputs.cephfs_pool_type ]]" == "data" ]];
+                then
+                  if [[ "$[[ inputs.cephfs_data_crush_rule ]]" == "" ]];
+                  then
+                    echo "Не указан crush rule"
+                    exit 1
+                  fi
+                  $EXEC -rados -e $[[ inputs.endpoint ]] $operation -pool "cephfs.$[[ inputs.cephfs_name ]].data" -crush_rule "$[[ inputs.cephfs_data_crush_rule ]]"
+                fi
+                exit 0
+              fi
+            done
+            echo -e "\033[33m--- Не найдена cephfs с именем \033[31;1m$[[ inputs.cephfs_name ]]\033[0m\033[33m ---\033[0m"
+            exit 1
+          fi
+
+          # Смена атрибутов существующего pool
+          if [[ "$operation" == "-cpa" ]];
+          then
+            echo "Смена атрибутов существующего pool"
+            echo "Тип pool: $[[ inputs.cephfs_pool_type ]]"
+
+            # Проверка что cephfs существует
+            for fs in $($EXEC -rados -e $[[ inputs.endpoint ]] -gf -format json -refresh -nocache | jq '.[] | select(.application_metadata.cephfs.data != null) | .application_metadata.cephfs.data' | sed 's/"//g');
+            do
+              if [[ $fs == "$[[ inputs.cephfs_name ]]" ]];
+              then
+                if [[ "$[[ inputs.cephfs_pool_type ]]" == "data" ]];
+                then
+                  # Преобразование GiB в kb
+                  user_quota_b=$(( $[[ inputs.cephfs_data_pool_quota ]] * 1073741824 ))
+                  $EXEC -rados -e $[[ inputs.endpoint ]] $operation \
+                  -pool "cephfs.$[[ inputs.cephfs_name ]].data" \
+                  -dpa "off|$[[ inputs.cephfs_data_pool_pg_num ]]|none|$user_quota_b|0"
+                fi
+
+                if [[ "$[[ inputs.cephfs_pool_type ]]" == "meta" ]];
+                then
+                  $EXEC -rados -e $[[ inputs.endpoint ]] $operation \
+                  -pool "cephfs.$[[ inputs.cephfs_name ]].meta" \
+                  -mpa "off|$[[ inputs.cephfs_meta_pool_pg_num ]]|none|0|0"
+                fi
+                exit 0
+              fi
+            done
+            echo -e "\033[33m--- Не найдена cephfs с именем \033[31;1m$[[ inputs.cephfs_name ]]\033[0m\033[33m ---\033[0m"
+            exit 1
+          fi
+        }
+
+        # Инцииализация запуска методов в зависимости от типа операции
+        if [[ "$[[ inputs.operation_type ]]" == "-rgw" ]];
+        then
+          rgw_operations
+        fi
+        if [[ "$[[ inputs.operation_type ]]" == "-rados" ]];
+        then
+          rados_operations
+        fi
+        EOF

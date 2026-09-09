@@ -1,0 +1,10 @@
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy main restricted
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy-updates main restricted
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy universe
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy-updates universe
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy multiverse
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy-updates multiverse
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_archive.ubuntu.com-ubuntu_jammy jammy-backports main restricted universe multiverse
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_security.ubuntu.com-ubuntu_jammy jammy-security main restricted
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_security.ubuntu.com-ubuntu_jammy jammy-security universe
+deb [trusted=yes] https://repo.crpt.tech/repository/proxy_security.ubuntu.com-ubuntu_jammy jammy-security multiverse

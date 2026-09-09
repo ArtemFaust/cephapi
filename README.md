@@ -1,24 +1,3 @@
-> Свойства и параметры кластеров доступные к переопределнию на уровне пайплайна
-
-| Endpoint | Кластер | Размещение | Доступный тип операций |Свойства операции | Значение по умолчанию | Альтернативнативные варианты |
-|-----|------|------|------|------|------|------|
-| **ru-dh-ish-3** | ceph.ru-dh3.prod02.ish.crpt.tech | DH | RGW | Доступна смена storage class | default-placement/STANDARD - HDD тип носителей | rep_ssd_host/STANDARD_SSD - NVME тип носителей |
-| **ru-ud-ish-3** | ceph.ru-ud3.prod01.ish.crpt.tech | UD | RGW | Доступна смена storage class | default-placement/STANDARD - HDD тип носителей | rep_ssd_host/STANDARD_SSD - NVME тип носителей |
-| **ru-ud-amoff-1** | ceph.prod01.amoff.crpt.tech | UD | RGW | - | default-placement/STANDARD - NVME тип носителей | - |
-| **ru-ud-analytics** | ceph.ru-ud1.prod.analytics.crpt.tech | UD | RGW | - | default-placement/STANDARD - HDD тип носителей | - |
-| **ru-ud-1** | ceph.ru-ud1.prod01.sysops.crpt.tech | UD | RGW | Доступна смена storage class | default-placement/STANDARD - NVME тип носителей | rep_hdd_host/STANDARD - HDD тип носителей |
-| **s3.test01.infra** | ceph-s3.test01.infra.crpt.tech| UD | RGW | - | default-placement/STANDARD - HDD тип носителей | - |
-| | | | RADOS | Доступна смена типа носителя для data pool | repl_hdd_host - HDD тип носителей | repl_ssd_host - SSD тип носителей |
-| **s3.prod01.infra** | ceph-s3.prod01.infra.crpt.tech| UD | RGW | - | default-placement/STANDARD - HDD тип носителей | - |
-| | | | RADOS | Доступна смена типа носителя для data pool | rep_hdd_host - HDD тип носителей | rep_ssd_host - SSD тип носителей |
-| **s3.prod02.infra** | ceph-s3.prod02.infra.crpt.tech| DH | RGW | - | default-placement/STANDARD - HDD тип носителей | - |
-| | | | RADOS | Доступна смена типа носителя для data pool | rep_hdd_host - HDD тип носителей | rep_ssd_host - SSD тип носителей |
-| **ru-ud-dmz-1** | ceph.prod01.idmz.crpt.tech | UD | RGW | - | default-placement/STANDARD - NVME тип носителей | - |
-| **ru-dh-1** | ceph.ru-dh1.prod02.sysops.crpt.tech | DH | RGW | Доступна смена storage class  | default-placement/STANDARD - NVME тип носителей | rep_hdd_host/STANDARD - HDD тип носителей |
-| **ru-dh-dmz-1** | ceph.prod02.idmz.crpt.tech | DH | RGW | - | default-placement/STANDARD - NVME тип носителей | - |
-| **ceph-test.test10** | 10.9.61.121:8443 | Virtual | RGW | Доступна смена storage class | default-placement/STANDARD - HDD тип носителей | replicated_rule_ssd/STANDART_SSD - SSD тип носителей  |
-| | | | RADOS | Доступна смена типа носителя для data pool | replicated_rule - HDD тип носителей | replicated_rule_ssd - SSD тип носителей |
-
 > Документация по работе с пайплайном
 # Описание действий	связанных с работай пайплайна
 ## RGW операции
